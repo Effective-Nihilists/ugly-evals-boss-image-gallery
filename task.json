@@ -1,0 +1,30 @@
+{
+  "name": "boss-image-gallery",
+  "kind": "feature",
+  "turns": [
+    "Build an image-generation gallery feature in this ugly-app project.\n\nRequirements:\n- A user can type a text prompt and request an image. Use `imageGen(userId)` from `ugly-app/server` to produce the image (check existing handlers in server/index.ts for how other `ugly-app/server` primitives are used).\n- Store each generated image in a per-user collection. The stored record must include at minimum: the original prompt, the image URL returned by imageGen, and a timestamp.\n- Expose TWO authReq endpoints on shared/api.ts: one that generates + persists a new image, and one that lists the caller's previously-generated images (so the page can load the grid on mount).\n- Add a route at `/gallery` that shows a grid of all the current user's generated images, with the prompt visible under each one, and an input to generate a new one.\n- Follow the framework conventions already in use in this repo: read shared/api.ts, shared/collections.ts, shared/pages.ts, server/index.ts, client/allPages.ts to see how the existing Todo feature is wired, and model your new feature on that pattern.\n\nVerify with `tsc --noEmit` before declaring done. Do not change anything in node_modules or package.json beyond what the feature requires."
+  ],
+  "budget": {
+    "maxTurns": 35,
+    "maxCostUsd": 2.5,
+    "timeoutMs": 720000
+  },
+  "successCriteria": "shared/collections.ts has a new collection for generated images (with userId, prompt, imageUrl, and a timestamp field) and a zod type to match. shared/api.ts declares authReq endpoints for generating an image (input: prompt; output: the saved record) and listing the caller's generations. server/index.ts implements the generate handler and actually calls `imageGen(userId)` (not a stub URL) and persists the returned URL. shared/pages.ts declares `/gallery`; client/allPages.ts lazy-loads it; a gallery page component exists under client/pages/ that renders the grid + input. tsc --noEmit passes. Partial = backend works but no UI, or UI but no real imageGen call.",
+  "tags": [
+    "ugly-app",
+    "full-stack",
+    "ai",
+    "boss"
+  ],
+  "setupProvenance": {
+    "command": "npx",
+    "args": [
+      "--yes",
+      "ugly-app",
+      "init",
+      "app"
+    ],
+    "cwd": "app",
+    "note": "main branch of this repo IS the post-setup tree; recorded for traceability"
+  }
+}
