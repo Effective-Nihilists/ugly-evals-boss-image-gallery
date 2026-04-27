@@ -11,12 +11,13 @@ import {
   type InboundEmail,
   type RequestHandlers,
 } from 'ugly-app';
+import { createImageGen, getDocs } from 'ugly-app/server';
 import { enableConversations } from 'ugly-app/conversation/server';
 import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { Todo, GeneratedImage } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -112,6 +113,29 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    generateImage: async (userId, { prompt }) => {
+      const imageGen = createImageGen(userId);
+      const imageUrl = await imageGen.generate(prompt);
+      const _id = crypto.randomUUID();
+      const doc: GeneratedImage = { _id, userId, prompt, imageUrl, ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, doc);
+      return { id: _id, imageUrl };
+    },
+
+    listGeneratedImages: async (userId): Promise<{ images: Array<{ id: string; prompt: string; imageUrl: string; createdAt: number }> }> => {
+      const docs = await getDocs<GeneratedImage>(collections.generatedImage.name, { userId });
+      const images = docs
+        .slice()
+        .sort((a: GeneratedImage, b: GeneratedImage) => new Date(b.created).getTime() - new Date(a.created).getTime())
+        .map((doc: GeneratedImage) => ({
+          id: doc._id,
+          prompt: doc.prompt,
+          imageUrl: doc.imageUrl,
+          createdAt: new Date(doc.created).getTime(),
+        }));
+      return { images };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,

@@ -31,6 +31,13 @@ export const CollabDocSchema = z.object({
 });
 export type CollabDoc = InferDocType<typeof CollabDocSchema>;
 
+export const GeneratedImageSchema = z.object({
+  userId: z.string(),
+  prompt: z.string(),
+  imageUrl: z.string(),
+});
+export type GeneratedImage = InferDocType<typeof GeneratedImageSchema>;
+
 // --- Collections ---
 // meta options:
 //   cache        – cache docs in memory LRU (good for small, frequently read collections)
@@ -58,6 +65,10 @@ export const collections = defineCollections({
   collabDoc: {
     schema: CollabDocSchema,
     meta: { cache: false, trackable: false, public: false, cascadeFrom: null },
+  },
+  generatedImage: {
+    schema: GeneratedImageSchema,
+    meta: { cache: false, trackable: false, public: false, cascadeFrom: null, trackKeys: ['userId'] },
   },
 });
 
