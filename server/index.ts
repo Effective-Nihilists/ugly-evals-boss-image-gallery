@@ -1,5 +1,6 @@
 import {
   createApp,
+  createImageGen,
   pgQuery,
   emailSend,
   flushPerf,
@@ -16,7 +17,7 @@ import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { GeneratedImage, Todo } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -59,6 +60,22 @@ const app = createApp(
       if (!todo?.userId || todo.userId !== userId) throw new Error('Todo not found');
       await app.db.deleteDoc(collections.todo, todoId);
       return { ok: true };
+    },
+
+    generateImage: async (userId, { prompt }): Promise<{ id: string; imageUrl: string }> => {
+      const imageUrl = await createImageGen(userId).generate(prompt);
+      const _id = crypto.randomUUID();
+      const doc: GeneratedImage = { _id, userId, prompt, imageUrl, createdAt: Date.now(), ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, doc);
+      return { id: _id, imageUrl };
+    },
+
+    listImages: async (userId): Promise<{ images: { id: string; prompt: string; imageUrl: string; createdAt: number }[] }> => {
+      const docs = await app.db.getDocs(collections.generatedImage, { userId });
+      const images = docs
+        .sort((a: GeneratedImage, b: GeneratedImage) => b.createdAt - a.createdAt)
+        .map((d: GeneratedImage) => ({ id: d._id, prompt: d.prompt, imageUrl: d.imageUrl, createdAt: d.createdAt }));
+      return { images };
     },
 
     sendPush: async (_userId, { targetUserId, title, body, path, query, imageUrl }) => {
