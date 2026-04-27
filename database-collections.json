@@ -1,0 +1,143 @@
+{
+  "generatedAt": "2026-04-27T22:54:06.411Z",
+  "source": "shared/collections.ts",
+  "collections": {
+    "todo": {
+      "name": "todo",
+      "schema": {
+        "fields": {
+          "done": {
+            "type": "boolean",
+            "required": true
+          },
+          "text": {
+            "type": "string",
+            "required": true
+          },
+          "userId": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "meta": {
+        "cache": false,
+        "trackable": true,
+        "public": false,
+        "cascadeFrom": null,
+        "trackKeys": [
+          "userId"
+        ]
+      }
+    },
+    "conversation": {
+      "name": "conversation",
+      "schema": {
+        "fields": {
+          "title": {
+            "type": "string",
+            "required": true,
+            "default": ""
+          },
+          "type": {
+            "type": "string",
+            "required": true,
+            "default": "ai-chat"
+          }
+        }
+      },
+      "meta": {
+        "cache": false,
+        "trackable": false,
+        "public": false,
+        "cascadeFrom": null
+      }
+    },
+    "message": {
+      "name": "message",
+      "schema": {
+        "fields": {
+          "conversationId": {
+            "type": "string",
+            "required": true
+          },
+          "text": {
+            "type": "string",
+            "required": true
+          },
+          "userId": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "meta": {
+        "cache": false,
+        "trackable": false,
+        "public": false,
+        "cascadeFrom": "conversation",
+        "trackKeys": [
+          "conversationId"
+        ]
+      }
+    },
+    "collabDoc": {
+      "name": "collabDoc",
+      "schema": {
+        "fields": {
+          "lastSyncedAt": {
+            "type": "number",
+            "required": true
+          },
+          "serialized": {
+            "type": "string",
+            "required": true,
+            "nullable": true
+          },
+          "yjsState": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "meta": {
+        "cache": false,
+        "trackable": false,
+        "public": false,
+        "cascadeFrom": null
+      }
+    },
+    "generatedImage": {
+      "name": "generatedImage",
+      "schema": {
+        "fields": {
+          "createdAt": {
+            "type": "number",
+            "required": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "required": true
+          },
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "userId": {
+            "type": "string",
+            "required": true
+          }
+        }
+      },
+      "meta": {
+        "cache": false,
+        "trackable": false,
+        "public": false,
+        "cascadeFrom": null,
+        "trackKeys": [
+          "userId"
+        ]
+      }
+    }
+  }
+}

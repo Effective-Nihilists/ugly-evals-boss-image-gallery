@@ -7,6 +7,7 @@ import {
   recordFeedback,
   recordPerf,
   uglyBotRequest,
+  createImageGen,
   type AppConfigurator,
   type InboundEmail,
   type RequestHandlers,
@@ -16,7 +17,7 @@ import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { GeneratedImage, Todo } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -112,6 +113,34 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    generateImage: async (userId, { prompt }) => {
+      const imageUrl = await createImageGen(userId).generate(prompt);
+      const _id = crypto.randomUUID();
+      const record: GeneratedImage = {
+        _id,
+        userId,
+        prompt,
+        imageUrl,
+        createdAt: Date.now(),
+        ...dbDefaults(),
+      };
+      await app.db.setDoc(collections.generatedImage, record);
+      return { id: _id, imageUrl };
+    },
+
+    listGeneratedImages: async (userId): Promise<{ images: { id: string; prompt: string; imageUrl: string; createdAt: number }[] }> => {
+      const images: GeneratedImage[] = await app.db.getDocs(collections.generatedImage, { keys: { userId } });
+      const sorted = images.sort((a, b) => b.createdAt - a.createdAt);
+      return {
+        images: sorted.map((img) => ({
+          id: img._id,
+          prompt: img.prompt,
+          imageUrl: img.imageUrl,
+          createdAt: img.createdAt,
+        })),
+      };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,

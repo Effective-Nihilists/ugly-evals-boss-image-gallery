@@ -35,6 +35,7 @@ export const pages = definePages({
   'test/worker': definePage<{}>({ auth: true }),
   'test/strings': definePage<{}>({ auth: false }),
   'test/safe-area': definePage<{}>({ auth: false }),
+  'gallery': definePage<{}>({ auth: true }),
 });
 
 export type AppPages = typeof pages;
