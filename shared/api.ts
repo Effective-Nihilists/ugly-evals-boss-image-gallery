@@ -43,6 +43,18 @@ export const requests = defineRequests({
     rateLimit: { max: 5, window: 60 },
   }),
 
+  // Image gallery — generate and store images
+  generateImage: authReq({
+    input: z.object({ prompt: z.string().min(1).max(500) }),
+    output: z.object({ id: z.string(), imageUrl: z.string() }),
+    rateLimit: { max: 10, window: 60 },
+  }),
+
+  listGeneratedImages: authReq({
+    input: z.object({}),
+    output: z.object({ images: z.array(z.object({ _id: z.string(), prompt: z.string(), imageUrl: z.string(), created: z.number() })) }),
+  }),
+
   // Error test — intentionally throws to test error capture
   triggerTestError: authReq({
     input: z.object({ message: z.string().optional() }),
