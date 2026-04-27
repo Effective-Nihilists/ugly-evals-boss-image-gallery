@@ -1,4 +1,5 @@
 import {
+  createImageGen,
   createApp,
   pgQuery,
   emailSend,
@@ -16,7 +17,7 @@ import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { GeneratedImage, Todo } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -112,6 +113,21 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    generateImage: async (userId, { prompt }) => {
+      const imageUrl = await createImageGen(userId).generate(prompt);
+      const _id = crypto.randomUUID();
+      const image: GeneratedImage = { _id, userId, prompt, imageUrl, ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, image);
+      return { id: _id, imageUrl, prompt, created: image.created.getTime() };
+    },
+
+    listImages: async (userId): Promise<{ images: Array<{ id: string; imageUrl: string; prompt: string; created: number }> }> => {
+      const docs = await app.db.getDocs<GeneratedImage>(collections.generatedImage, { keys: { userId } });
+      return {
+        images: docs.map((doc) => ({ id: doc._id, imageUrl: doc.imageUrl, prompt: doc.prompt, created: doc.created.getTime() })),
+      };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,
