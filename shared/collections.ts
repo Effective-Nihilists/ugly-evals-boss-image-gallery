@@ -24,6 +24,13 @@ export const MessageSchema = z.object({
 });
 export type Message = InferDocType<typeof MessageSchema>;
 
+export const GeneratedImageSchema = z.object({
+  userId: z.string(),
+  prompt: z.string(),
+  imageUrl: z.string(),
+});
+export type GeneratedImage = InferDocType<typeof GeneratedImageSchema>;
+
 export const CollabDocSchema = z.object({
   yjsState: z.string(),
   serialized: z.string().nullable(),
@@ -58,6 +65,10 @@ export const collections = defineCollections({
   collabDoc: {
     schema: CollabDocSchema,
     meta: { cache: false, trackable: false, public: false, cascadeFrom: null },
+  },
+  generatedImage: {
+    schema: GeneratedImageSchema,
+    meta: { cache: false, trackable: true, public: false, cascadeFrom: null, trackKeys: ['userId'] },
   },
 });
 
