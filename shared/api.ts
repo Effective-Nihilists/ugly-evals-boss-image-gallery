@@ -85,6 +85,19 @@ export const requests = defineRequests({
     output: z.object({ ok: z.boolean() }),
   }),
 
+  // Image gallery — generate a new image from a text prompt
+  generateImage: authReq({
+    input: z.object({ prompt: z.string().min(1).max(2000) }),
+    output: z.object({ id: z.string(), imageUrl: z.string() }),
+    rateLimit: { max: 10, window: 60 },
+  }),
+
+  // Image gallery — list the current user's previously generated images
+  listImages: authReq({
+    input: z.object({}),
+    output: z.object({ images: z.array(z.object({ id: z.string(), prompt: z.string(), imageUrl: z.string(), createdAt: z.number() })) }),
+  }),
+
   // Example: public request — userId is string | null
   // getPublicData: req({
   //   input: z.object({ id: z.string() }),
