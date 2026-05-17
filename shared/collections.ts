@@ -29,7 +29,13 @@ export const CollabDocSchema = z.object({
   serialized: z.string().nullable(),
   lastSyncedAt: z.number(),
 });
-export type CollabDoc = InferDocType<typeof CollabDocSchema>;
+export const GeneratedImageSchema = z.object({
+  userId: z.string(),
+  prompt: z.string(),
+  imageUrl: z.string(),
+  createdAt: z.number(),
+});
+export type GeneratedImage = InferDocType<typeof GeneratedImageSchema>;
 
 // --- Collections ---
 // meta options:
@@ -55,9 +61,13 @@ export const collections = defineCollections({
     schema: MessageSchema,
     meta: { cache: false, trackable: false, public: false, cascadeFrom: 'conversation', trackKeys: ['conversationId'] },
   },
-  collabDoc: {
+collabDoc: {
     schema: CollabDocSchema,
     meta: { cache: false, trackable: false, public: false, cascadeFrom: null },
+  },
+  generatedImage: {
+    schema: GeneratedImageSchema,
+    meta: { cache: false, trackable: true, public: false, cascadeFrom: null, trackKeys: ['userId'] },
   },
 });
 
