@@ -17,6 +17,7 @@ export const pages = definePages({
   'auth-demo': definePage<{}>({ auth: false }),
   'user/:userId': definePage<{ userId: string }>(),
   'search': definePage<{ q?: string }>({ auth: false }),
+  'gallery': definePage<{}>({ auth: true }),
   'test': definePage<{}>({ auth: false }),
   'test/ai': definePage<{}>({ auth: true }),
   'test/ui': definePage<{}>({ auth: false }),

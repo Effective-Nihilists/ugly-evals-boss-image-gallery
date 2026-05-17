@@ -18,6 +18,7 @@ export const allPages = {
   ['auth-demo']: lazyPage(() => import('./pages/AuthDemoPage')),
   ['user/:userId']: lazyPage(() => import('./pages/UserPage')),
   ['search']: lazyPage(() => import('./pages/SearchPage')),
+  ['gallery']: lazyPage(() => import('./pages/GalleryPage')),
   ['test']: lazyPage(() => import('./pages/TestIndexPage')),
   ['test/ai']: lazyPage(() => import('./pages/AITestPage')),
   ['test/ui']: lazyPage(() => import('./pages/UIComponentsPage')),

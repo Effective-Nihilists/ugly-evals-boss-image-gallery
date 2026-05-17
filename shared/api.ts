@@ -90,6 +90,19 @@ export const requests = defineRequests({
   //   input: z.object({ id: z.string() }),
   //   output: z.object({ data: z.string() }),
   // }),
+
+  // Image gallery — generate a new image
+  generateImage: authReq({
+    input: z.object({ prompt: z.string().min(1).max(1000) }),
+    output: z.object({ id: z.string(), prompt: z.string(), imageUrl: z.string(), createdAt: z.number() }),
+    rateLimit: { max: 5, window: 60 },
+  }),
+
+  // Image gallery — list user's generated images
+  listMyImages: authReq({
+    input: z.object({}),
+    output: z.object({ images: z.array(z.object({ id: z.string(), prompt: z.string(), imageUrl: z.string(), createdAt: z.number() })) }),
+  }),
 });
 
 export const messages = defineMessages({
