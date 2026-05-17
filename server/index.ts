@@ -11,12 +11,13 @@ import {
   type InboundEmail,
   type RequestHandlers,
 } from 'ugly-app';
+
 import { enableConversations } from 'ugly-app/conversation/server';
 import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { GeneratedImage, Todo } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -113,6 +114,37 @@ const app = createApp(
       await emailSend({ userId, subject, html, id });
       return { ok: true };
     },
+
+    generateGalleryImage: async (userId, { prompt }) => {
+      const { url } = await uglyBotRequest<{ url: string }>('imageGen', {
+        model: 'flux_2_pro',
+        prompt,
+        userId,
+      });
+      const _id = crypto.randomUUID();
+      const image: GeneratedImage = { _id, userId, prompt, imageUrl: url, ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, image);
+      return { id: _id, imageUrl: url };
+    },
+
+    listGalleryImages: async (userId) => {
+      const docs = await app.db.getDocs(
+        collections.generatedImage,
+        { userId },
+        { sort: { created: -1 }, limit: 50 },
+      );
+      const images = (docs ?? []) as GeneratedImage[];
+      return {
+        images: images.map((img) => ({
+          id: img._id,
+          prompt: img.prompt,
+          imageUrl: img.imageUrl,
+          created: img.created instanceof Date ? img.created.getTime() : img.created,
+        })),
+      };
+    },
+
+
   } satisfies RequestHandlers<typeof requests>,
   collections,
   (configurator: AppConfigurator) => {
