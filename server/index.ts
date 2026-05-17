@@ -11,12 +11,13 @@ import {
   type InboundEmail,
   type RequestHandlers,
 } from 'ugly-app';
+import { createImageGen, imageGenModels } from 'ugly-app/server';
 import { enableConversations } from 'ugly-app/conversation/server';
 import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { GeneratedImage, Todo } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -112,6 +113,40 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    // Image gallery — generate and persist an image
+    generateImage: async (userId, { prompt }) => {
+      const model = imageGenModels[0]!;
+      const url = await createImageGen(userId).generate(prompt, { model });
+      const _id = `img-${crypto.randomUUID()}`;
+      const image: GeneratedImage = {
+        _id,
+        userId,
+        prompt,
+        imageUrl: url,
+        model,
+        createdAt: Date.now(),
+        ...dbDefaults(),
+      };
+      await app.db.setDoc(collections.generatedImage, image);
+      return { id: _id, imageUrl: url };
+    },
+
+    // Image gallery — list caller's generated images
+    listImages: async (userId) => {
+      const docs = await app.db.getDocs(collections.generatedImage, { keys: { userId } }) as GeneratedImage[];
+      const images: Array<{ id: string; prompt: string; imageUrl: string; model: string; createdAt: number }> =
+        docs.map((doc) => ({
+          id: doc._id,
+          prompt: doc.prompt,
+          imageUrl: doc.imageUrl,
+          model: doc.model,
+          createdAt: doc.createdAt,
+        }));
+      // Sort newest first
+      images.sort((a, b) => b.createdAt - a.createdAt);
+      return { images };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,

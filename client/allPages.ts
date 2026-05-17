@@ -36,4 +36,5 @@ export const allPages = {
   ['test/worker']: lazyPage(() => import('./pages/WorkerTestPage')),
   ['test/strings']: lazyPage(() => import('./pages/StringsTestPage')),
   ['test/safe-area']: lazyPage(() => import('./pages/SafeAreaTestPage')),
+  ['gallery']: lazyPage(() => import('./pages/GalleryPage')),
 } satisfies PageMap<AppPages>;
