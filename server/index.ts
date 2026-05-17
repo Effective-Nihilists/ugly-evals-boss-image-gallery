@@ -11,12 +11,13 @@ import {
   type InboundEmail,
   type RequestHandlers,
 } from 'ugly-app';
+import { createImageGen } from 'ugly-app/server';
 import { enableConversations } from 'ugly-app/conversation/server';
 import { enableCollab } from 'ugly-app/collab/server';
 import type { CronHandlers } from 'ugly-app/shared';
 import { dbDefaults } from 'ugly-app/shared';
 import { messages, requests } from '../shared/api';
-import type { Todo } from '../shared/collections';
+import type { Todo, GeneratedImage } from '../shared/collections';
 import { collections } from '../shared/collections';
 import { cronTasks } from '../shared/cron';
 import { experiments } from '../shared/experiments';
@@ -112,6 +113,31 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    generateImage: async (userId, { prompt }) => {
+      const gen = createImageGen(userId);
+      const imageUrl = await gen.generate(prompt);
+      const _id = crypto.randomUUID();
+      const image: GeneratedImage = { _id, userId, prompt, imageUrl, ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, image);
+      return { _id, prompt, imageUrl };
+    },
+
+    getMyImages: async (userId: string, _input: Record<string, never>): Promise<{ images: { _id: string; prompt: string; imageUrl: string; created: number }[] }> => {
+      const docs = await app.db.getDocs(
+        collections.generatedImage,
+        { userId },
+        { sort: { created: -1 } },
+      ) as { _id: string; userId: string; prompt: string; imageUrl: string; created: number | Date }[];
+      return {
+        images: docs.map((img) => ({
+          _id: img._id,
+          prompt: img.prompt,
+          imageUrl: img.imageUrl,
+          created: typeof img.created === 'number' ? img.created : new Date(img.created).getTime(),
+        })),
+      };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,
