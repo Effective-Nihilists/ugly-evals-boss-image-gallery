@@ -4,6 +4,13 @@ import { defineCollections } from 'ugly-app/shared';
 
 // ─── Schemas & Types ─────────────────────────────────────────────────────────
 
+export const GeneratedImageSchema = z.object({
+  userId: z.string(),
+  prompt: z.string(),
+  imageUrl: z.string(),
+});
+export type GeneratedImage = InferDocType<typeof GeneratedImageSchema>;
+
 export const TodoSchema = z.object({
   userId: z.string(),
   text: z.string(),
@@ -58,6 +65,10 @@ export const collections = defineCollections({
   collabDoc: {
     schema: CollabDocSchema,
     meta: { cache: false, trackable: false, public: false, cascadeFrom: null },
+  },
+  generatedImage: {
+    schema: GeneratedImageSchema,
+    meta: { cache: false, trackable: true, public: false, cascadeFrom: null, trackKeys: ['userId'] },
   },
 });
 

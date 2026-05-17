@@ -1,5 +1,6 @@
 import {
   createApp,
+  createImageGen,
   pgQuery,
   emailSend,
   flushPerf,
@@ -35,6 +36,8 @@ const cronHandlers: CronHandlers<typeof cronTasks> = {
     console.log(`[Cron] dailyCleanup: deleted ${result.rowCount} old completed todos`);
   },
 };
+
+const imageGen = createImageGen();
 
 const app = createApp(
   { requests, messages },
@@ -112,6 +115,27 @@ const app = createApp(
     sendTestEmail: async (_userId, { userId, subject, html, id }) => {
       await emailSend({ userId, subject, html, id });
       return { ok: true };
+    },
+
+    generateGalleryImage: async (userId, { prompt }) => {
+      const { url } = await imageGen.generate(userId, { model: 'flux_2_pro', prompt });
+      const _id = crypto.randomUUID();
+      const doc = { _id, userId, prompt, imageUrl: url, ...dbDefaults() };
+      await app.db.setDoc(collections.generatedImage, doc);
+      return { id: _id, imageUrl: url };
+    },
+
+    listGalleryImages: async (userId: string) => {
+      const docs = await app.db.getDocsByIndex(collections.generatedImage, 'userId', userId);
+      const images = docs
+        .map((doc: { _id: string; prompt: string; imageUrl: string; created: number }) => ({
+          id: doc._id,
+          prompt: doc.prompt,
+          imageUrl: doc.imageUrl,
+          created: doc.created ?? Date.now(),
+        }))
+        .sort((a: { created: number }, b: { created: number }) => b.created - a.created);
+      return { images };
     },
   } satisfies RequestHandlers<typeof requests>,
   collections,
