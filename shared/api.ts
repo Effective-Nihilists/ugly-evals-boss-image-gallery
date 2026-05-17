@@ -17,6 +17,18 @@ export const requests = defineRequests({
     output: z.object({ ok: z.boolean() }),
   }),
 
+  // Image generation gallery
+  generateImage: authReq({
+    input: z.object({ prompt: z.string().min(1).max(1000) }),
+    output: z.object({ id: z.string(), imageUrl: z.string() }),
+    rateLimit: { max: 10, window: 60 },
+  }),
+
+  listImages: authReq({
+    input: z.object({}),
+    output: z.object({ images: z.array(z.object({ id: z.string(), prompt: z.string(), imageUrl: z.string(), createdAt: z.number() })) }),
+  }),
+
   // Push notification test — send a push via ugly.bot
   sendPush: authReq({
     input: z.object({
